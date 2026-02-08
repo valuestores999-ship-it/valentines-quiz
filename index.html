@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Valentine Quiz 💘</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+@font-face{
+  font-family:'Rockybilly';
+  src:url('Rockybilly.ttf') format('truetype');
+}
+
+*{
+  box-sizing:border-box;
+  font-family:'Poppins',sans-serif;
+  -webkit-tap-highlight-color:transparent;
+}
+
+body{
+  margin:0;
+  height:100vh;
+  background:linear-gradient(135deg,#6b6cff,#8a6cff);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  overflow:hidden;
+}
+
+/* Floating hearts */
+.hearts span{
+  position:fixed;
+  bottom:-40px;
+  font-size:30px;
+  opacity:.55;
+  animation:floatUp linear infinite;
+}
+@keyframes floatUp{
+  from{transform:translateY(0);}
+  to{transform:translateY(-120vh);}
+}
+
+/* Card */
+.card{
+  width:94%;
+  max-width:420px;
+  background:#fff;
+  border-radius:30px;
+  padding:30px 26px 32px;
+  box-shadow:0 30px 60px rgba(0,0,0,.3);
+  animation:fadeUp .8s ease;
+}
+@keyframes fadeUp{
+  from{opacity:0;transform:translateY(30px);}
+  to{opacity:1;transform:translateY(0);}
+}
+
+/* Start screen */
+.start-title{font-size:20px;font-weight:600;text-align:center;}
+.start-name{font-size:26px;font-weight:600;text-align:center;margin:10px 0;}
+.start-caption{text-align:center;font-size:16px;line-height:1.6;margin-bottom:28px;}
+.start-btn{
+  background:#6b6cff;color:#fff;padding:14px;border-radius:18px;
+  text-align:center;font-size:16px;cursor:pointer;
+}
+
+/* Quiz */
+.heading{text-align:center;font-weight:600;margin-bottom:14px;}
+.question{text-align:center;font-size:18px;margin-bottom:20px;}
+.option{
+  border:2px solid #d8dcff;padding:14px;border-radius:16px;
+  margin-bottom:14px;text-align:center;cursor:pointer;
+  opacity:0;animation:optionIn .6s forwards;
+}
+.option:nth-child(1){animation-delay:.1s}
+.option:nth-child(2){animation-delay:.2s}
+.option:nth-child(3){animation-delay:.3s}
+.option:nth-child(4){animation-delay:.4s}
+
+@keyframes optionIn{
+  from{opacity:0;transform:translateY(12px);}
+  to{opacity:1;transform:translateY(0);}
+}
+
+.option:hover{
+  background:#6b6cff;color:#fff;border-color:#6b6cff;
+}
+
+/* Popup */
+.popup{
+  position:fixed;inset:0;background:rgba(0,0,0,.35);
+  display:none;justify-content:center;align-items:center;
+}
+.popup-box{
+  background:#fff;padding:36px;border-radius:26px;
+  font-size:22px;text-align:center;animation:pop .4s ease;
+}
+@keyframes pop{
+  0%{transform:scale(0);}
+  70%{transform:scale(1.25);}
+  100%{transform:scale(1);}
+}
+
+/* Correct heart */
+.sky-heart{font-size:72px;animation:heartUp 1s ease;}
+@keyframes heartUp{
+  0%{transform:scale(.3);opacity:0;}
+  50%{transform:scale(1.3);opacity:1;}
+  100%{transform:translateY(-30px);opacity:0;}
+}
+
+/* Signature */
+.signature{
+  font-family:'Rockybilly',cursive;
+  font-size:28px;text-align:center;
+}
+.cursor{border-right:2px solid #333;padding-right:4px;}
+</style>
+</head>
+
+<body>
+
+<!-- MUSIC -->
+<audio id="song1"><source src="Hayyoda_x_Remo_BGM_TAMIL_Jenushan_Anirudh_128KBPS.mp4" type="audio/mp4"></audio>
+<audio id="song2"><source src="Oorum_Blood_Unplugged_Dude_Pradeep_Ranganathan_Mamitha_Baiju_Sai_Abhyankkar_Keerthiswaran_256kbps.webm" type="audio/webm"></audio>
+
+<div class="hearts">
+  <span style="left:10%;animation-duration:18s">🩵</span>
+  <span style="left:30%;animation-duration:22s">💗</span>
+  <span style="left:50%;animation-duration:20s">💖</span>
+  <span style="left:70%;animation-duration:24s">💞</span>
+  <span style="left:90%;animation-duration:19s">🩵</span>
+</div>
+
+<div class="card" id="card">
+
+<div id="startScreen">
+  <div class="start-title">⚠️ Warning: Valentine-level cuteness ahead 💋</div>
+  <div class="start-name">Sony Maa</div>
+  <div class="start-caption">A tiny quiz made with a lot of love 💕<br>Ready?</div>
+  <div class="start-btn" onclick="startQuiz()">Begin 💌</div>
+</div>
+
+<div id="quizScreen" style="display:none;">
+  <div class="heading" id="heading"></div>
+  <div class="question" id="question"></div>
+  <div id="options"></div>
+</div>
+
+</div>
+
+<div class="popup" id="popup">
+  <div class="popup-box" id="popupBox"></div>
+</div>
+
+<script>
+// DOM bindings
+const startScreen=document.getElementById("startScreen");
+const quizScreen=document.getElementById("quizScreen");
+const heading=document.getElementById("heading");
+const question=document.getElementById("question");
+const options=document.getElementById("options");
+const popup=document.getElementById("popup");
+const popupBox=document.getElementById("popupBox");
+const card=document.getElementById("card");
+const song1=document.getElementById("song1");
+const song2=document.getElementById("song2");
+
+song1.volume = 0.5;
+song2.volume = 0.5;
+
+// Play song 2 after 63 seconds of song 1
+let songTimeout;
+
+function playMusicSequence(){
+  song1.currentTime = 0;
+  song1.play();
+
+  songTimeout = setTimeout(()=>{
+    song1.pause();
+    song2.currentTime = 0;
+    song2.play();
+  }, 63000); // 63 seconds
+}
+
+
+const quiz=[
+{h:"💝 Valentine Pop Quiz 💝",q:"Who loves you the most?",o:["The one who misses you silently 🌙","The one who built this quiz just for you 💻💘","The one who smiles when you smile 😊","The one who sends good morning texts ☀️"],c:1},
+{h:"💕 MCQ for my favorite human 💕",q:"Our love is…",o:["Soft and comforting 🤍","Fun and chaotic 😜","Growing stronger every day 🌱","All of this together ❤️"],c:3},
+{h:"😘 Quick quiz, babe 😘",q:"My favorite place?",o:["Somewhere calm 🌊","Food places 🍕","Wherever you are 💑","Anywhere with Wi-Fi 📶"],c:2},
+{h:"💘 Valentine MCQ 💘",q:"Who owns my heart?",o:["Understands me 🧠❤️","You 😍","Makes me laugh 😂","Feels like home 🏡"],c:1},
+{h:"🫶 Pop quiz time 🫶",q:"What makes me smile instantly?",o:["Random memes 😄","Good news 📰✨","Your presence 🥰","You, without even trying 💞"],c:3},
+{h:"💕 Valentine MCQ 💕",q:"When I imagine my future, I see…",o:["Peace 🌸","Growth 🌈","Forever ♾️","Us 💍"],c:3},
+{h:"😘 Love quiz 😘",q:"The safest place in the world is…",o:["Home 🏠","Understanding 🤍","Next to you 🫶","Silence 🌌"],c:2},
+{h:"💘 Romantic pop quiz 💘",q:"Who makes my heart feel at home?",o:["Listener 👂","Stayer 🫂","Chooser 🌹","You 😌"],c:3},
+{h:"💝 MCQ but make it love 💝",q:"My favorite ‘I love you’ is…",o:["Care 🍽️","Memory 🧠💕","Silence 🤫❤️","All of it 💘"],c:3},
+{h:"💞 Valentine test 💞",q:"What do I want more than anything?",o:["Peace 🧘","Time ⏳","Future 🌟","Lifetime with you 💍"],c:3},
+{h:"❤️ Heart quiz ❤️",q:"Who makes ordinary days magical?",o:["Surprises 🎁","Talks 💬","You ✨","Love 💖"],c:2},
+{h:"💕 Romantic MCQ 💕",q:"My forever Valentine is…",o:["Knows flaws 😌","Stays 🤍","Destiny 🌙","You ♾️"],c:3},
+{h:"💍 One last thing… 💍",q:"Will you be my Valentine, Sony Maa?",o:["I already am 💕","Of course 😍","Always 😘","No 🙈"],c:0,special:true}
+];
+
+const funny=[
+"😂 Nope!","🙈 Try again!","😜 Almost!","💭 Think like my Valentine!",
+"😅 Cute guess","🤭 Not this one","💘 Try again","😏 You know it","🙃 Nope","🥰 Almost"
+];
+
+let index=0;
+
+function startQuiz(){
+  playMusicSequence();
+  startScreen.style.display="none";
+  quizScreen.style.display="block";
+  loadQ();
+}
+
+
+function loadQ(){
+  heading.innerText=quiz[index].h;
+  question.innerText=quiz[index].q;
+  options.innerHTML="";
+  quiz[index].o.forEach((t,i)=>{
+    const d=document.createElement("div");
+    d.className="option";
+    d.innerText=t;
+    d.onclick=()=>answer(i);
+    options.appendChild(d);
+  });
+}
+
+function answer(i){
+  popup.style.display="flex";
+
+  if(quiz[index].special && i===3){
+    popupBox.innerText="❌ Invalid option.\nSystem override: You are already my Valentine 😌💖";
+    setTimeout(()=>popup.style.display="none",1200);
+    return;
+  }
+
+  if(i===quiz[index].c){
+    popupBox.innerHTML='<div class="sky-heart">🩵</div>';
+    setTimeout(()=>{
+      popup.style.display="none";
+      index++;
+      index<quiz.length?loadQ():finish();
+    },900);
+  }else{
+    popupBox.innerText=funny[Math.random()*funny.length|0];
+    setTimeout(()=>popup.style.display="none",800);
+  }
+}
+
+function finish(){
+  card.innerHTML=`
+  <div style="text-align:center;font-size:20px;font-weight:600">
+    Congratulations Sony Maa
+  </div>
+  <p style="margin-top:18px;font-size:16px;line-height:1.7">
+    You officially know me better than I know myself 🥹<br><br>
+    Unlimited hugs 🤗, lifetime teasing 😜,<br>
+    and being stuck with me forever ♾️💍<br><br>
+    With all my heart,<br>
+    <div class="signature" id="sign"></div>
+  </p>`;
+  typeText("Venkat to my Sony Maa","sign");
+}
+
+function typeText(text,id){
+  const el=document.getElementById(id);
+  el.classList.add("cursor");
+  let i=0;
+  const t=setInterval(()=>{
+    el.textContent+=text[i++];
+    if(i===text.length){
+      clearInterval(t);
+      el.classList.remove("cursor");
+    }
+  },120);
+}
+</script>
+
+</body>
+</html>
